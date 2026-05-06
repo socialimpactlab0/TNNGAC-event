@@ -94,7 +94,7 @@
     const params = new URLSearchParams(window.location.search);
 
     const eventId = params.get("event") || "0719-xinying";
-    const regId = params.get("regId") || params.get("id") || "";
+    const regId = params.get("regId") || params.get("rid") || params.get("id") || "";
     const status = params.get("status") || "";
 
     const regIdText = document.getElementById("regIdText");

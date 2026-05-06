@@ -533,7 +533,7 @@
             <span class="faq-icon" style="font-size: 1.4rem; color: var(--primary); transition: transform 0.3s; flex-shrink: 0;">＋</span>
           </div>
           <div class="faq-a" style="max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.4s ease; padding: 0 20px; font-size: 0.9rem; line-height: 1.8; color: var(--text-muted);">
-            活動 09:00 開始報到，09:20 開始著色創作。若有特殊情況會遲到，請提前來電告知（曾小姐 0965-438-649）。
+            活動 09:00 開始報到，09:20 開始著色創作。若有特殊情況會遲到，請提前來電告知主辦單位。
           </div>
         </div>
 
@@ -995,7 +995,11 @@
     function validateForm() {
       var errors =[];
       if (!$('fullJoin').value) errors.push('請選擇是否能全程參與');
-      if ($('fullJoin').value === '否') errors.push('因活動流程連貫，建議能全程參與。若時間有困難，歡迎先來電聯繫曾小姐 0965-438-649');
+      if ($('fullJoin').value === '否') {
+        var contactName = cfg && cfg.contactName ? cfg.contactName : '主辦單位';
+        var contactPhone = cfg && cfg.contactPhone ? ' ' + cfg.contactPhone : '';
+        errors.push('因活動流程連貫，建議能全程參與。若時間有困難，歡迎先來電聯繫' + contactName + contactPhone);
+      }
       if (!$('resident').value) errors.push('請選擇是否為台南市民');
       if (!$('parentName').value.trim()) errors.push('請填寫家長姓名');
       if (!$('phone').value.trim()) errors.push('請填寫聯絡手機');
