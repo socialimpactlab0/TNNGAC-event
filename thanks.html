@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>報名成功｜乾淨校園兒童著色畫比賽</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body {
+      font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 237, 213, 0.9), transparent 35%),
+        linear-gradient(135deg, #fff7ed 0%, #fef3c7 45%, #ecfeff 100%);
+      min-height: 100vh;
+    }
+
+    .card {
+      box-shadow: 0 18px 45px rgba(120, 53, 15, 0.12);
+    }
+  </style>
+</head>
+
+<body class="flex items-center justify-center px-4 py-10">
+
+  <main class="w-full max-w-xl">
+    <section class="card bg-white/90 backdrop-blur rounded-3xl p-6 sm:p-8 text-center border border-orange-100">
+
+      <div class="mx-auto mb-5 w-20 h-20 rounded-full bg-green-100 flex items-center justify-center">
+        <span class="text-4xl">✅</span>
+      </div>
+
+      <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
+        報名已送出
+      </h1>
+
+      <p class="text-gray-600 leading-relaxed mb-6">
+        感謝您的參與！系統已收到您的報名資料。<br>
+        請保留本頁資訊，活動前如有需要確認，主辦單位將依報名資料與您聯繫。
+      </p>
+
+      <div class="bg-orange-50 rounded-2xl p-5 text-left mb-6 border border-orange-100">
+        <div class="mb-4">
+          <p class="text-sm text-gray-500 mb-1">報名序號</p>
+          <p id="regIdText" class="text-lg font-bold text-orange-700 break-all">
+            載入中...
+          </p>
+        </div>
+
+        <div>
+          <p class="text-sm text-gray-500 mb-1">報名狀態</p>
+          <p id="statusText" class="text-lg font-bold text-gray-800">
+            載入中...
+          </p>
+        </div>
+      </div>
+
+      <div class="bg-gray-50 rounded-2xl p-5 text-left mb-7 border border-gray-100">
+        <h2 class="font-bold text-gray-900 mb-2">
+          溫馨提醒
+        </h2>
+
+        <ul class="text-gray-600 text-sm leading-relaxed space-y-2">
+          <li>・請截圖或保存本頁的報名序號。</li>
+          <li>・若活動前有出席確認，請保持手機暢通。</li>
+          <li>・活動日期、地點與注意事項，請回到活動頁查看。</li>
+          <li>・若臨時無法參加，請儘早通知主辦單位，方便名額安排。</li>
+        </ul>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-3">
+        <a id="backToEventBtn"
+           href="index.html"
+           class="w-full inline-flex justify-center items-center rounded-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-5 transition">
+          回到活動頁
+        </a>
+
+        <button onclick="window.close()"
+                class="w-full inline-flex justify-center items-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 px-5 transition">
+          關閉本頁
+        </button>
+      </div>
+
+      <p class="text-xs text-gray-400 mt-6">
+        乾淨校園「我愛我家」兒童著色畫比賽
+      </p>
+
+    </section>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+
+    const eventId = params.get("event") || "0719-xinying";
+    const regId = params.get("regId") || params.get("id") || "";
+    const status = params.get("status") || "";
+
+    const regIdText = document.getElementById("regIdText");
+    const statusText = document.getElementById("statusText");
+    const backToEventBtn = document.getElementById("backToEventBtn");
+
+    if (regId) {
+      regIdText.textContent = regId;
+    } else {
+      regIdText.textContent = "未取得報名序號，請以主辦單位確認資料為準";
+    }
+
+    if (status === "候補" || status.indexOf("候補") === 0) {
+      statusText.textContent = "候補";
+      statusText.className = "text-lg font-bold text-amber-700";
+    } else if (status) {
+      statusText.textContent = status;
+      statusText.className = "text-lg font-bold text-green-700";
+    } else {
+      statusText.textContent = "已送出";
+      statusText.className = "text-lg font-bold text-green-700";
+    }
+
+    backToEventBtn.href = "index.html?event=" + encodeURIComponent(eventId);
+  </script>
+
+</body>
+</html>
