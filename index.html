@@ -626,7 +626,7 @@
             <span class="faq-icon" style="font-size: 1.4rem; color: var(--primary); transition: transform 0.3s; flex-shrink: 0;">＋</span>
           </div>
           <div class="faq-a" style="max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.4s ease; padding: 0 20px; font-size: 0.9rem; line-height: 1.8; color: var(--text-muted);">
-            活動 09:00 開始報到，09:20 開始著色創作。若有特殊情況會遲到，請提前來電告知主辦單位。
+            <span id="faqLateText">若有特殊情況會遲到，請提前來電告知主辦單位。</span>
           </div>
         </div>
 
@@ -667,7 +667,7 @@
             <span class="faq-icon" style="font-size: 1.4rem; color: var(--primary); transition: transform 0.3s; flex-shrink: 0;">＋</span>
           </div>
           <div class="faq-a" style="max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.4s ease; padding: 0 20px; font-size: 0.9rem; line-height: 1.8; color: var(--text-muted);">
-            免費參加。名額有限：<strong style="color: var(--text);">幼兒園組 25 名／國小低年級組 25 名</strong>。
+            <span id="faqQuotaText">免費參加，名額有限，實際名額請參閱活動辦法。</span>
           </div>
         </div>
 
@@ -944,6 +944,13 @@
       });
       
       $('scheduleSubtitle').textContent = cfg.eventDate + ' ｜ ' + cfg.eventTime;
+      if ($('faqLateText')) {
+        $('faqLateText').textContent = cfg.faqLateText || '若有特殊情況會遲到，請提前來電告知主辦單位。';
+      }
+      if ($('faqQuotaText')) {
+        $('faqQuotaText').textContent = cfg.faqQuotaText || '免費參加，名額有限，實際名額請參閱活動辦法。';
+      }
+
       var tl = $('timelineContainer'); tl.innerHTML = '';
       cfg.schedule.forEach(function(s) {
         tl.innerHTML += '<div class="timeline-item"><div class="timeline-dot">' + s.icon + '</div><div class="timeline-content"><div class="timeline-time">' + s.time + '</div><div class="timeline-title">' + s.title + '</div><div class="timeline-desc">' + s.desc + '</div></div></div>';
