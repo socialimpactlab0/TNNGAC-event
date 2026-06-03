@@ -713,6 +713,7 @@
       <div class="notice notice-pink fade-in" id="noticePink" style="padding: 14px 18px;">
         <div style="font-weight: 800; color: var(--primary-dark); font-size: 0.95rem; margin: 0;">表單約 1 分鐘完成，請確認孩子組別與手機號碼正確</div>
         <div style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-top: 6px;">送出後會立即產生報名序號，更多活動細節請參考上方<a href="#faq" style="color: var(--primary-dark); font-weight: 800; text-decoration: underline;">常見問題</a></div>
+        <div style="font-size: 0.82rem; color: var(--text-muted); font-weight: 700; margin-top: 8px;">主辦單位保留依實際狀況調整活動內容、流程及名額之權利。</div>
       </div>
       <div class="notice notice-green fade-in" id="noticeGreen">
         <div class="notice-title">✅ 出席確認機制</div>
@@ -902,10 +903,12 @@
 
     // 多活動共用版：從網址讀取活動代碼，例如 ?event=0719-xinying
     var urlParams = new URLSearchParams(window.location.search);
-    var EVENT_ID = urlParams.get('event') || '0712-meihuali';
+    var EVENT_ID = urlParams.get('event') || '0719-xinying';
 
     var $ = function(id) { return document.getElementById(id); };
     var cfg = null;
+    var registrationEnabled = true;
+    var registrationClosedMessage = '';
 
     function hideLoader() {
       var loader = $('loader');
@@ -948,7 +951,9 @@
         $('faqLateText').textContent = cfg.faqLateText || '若有特殊情況會遲到，請提前來電告知主辦單位。';
       }
       if ($('faqQuotaText')) {
-        $('faqQuotaText').textContent = cfg.faqQuotaText || '免費參加，名額有限，實際名額請參閱活動辦法。';
+        var quotaK = cfg.groups['幼兒園大班組'] ? cfg.groups['幼兒園大班組'].displayLimit : '—';
+        var quotaE = cfg.groups['國小低年級組'] ? cfg.groups['國小低年級組'].displayLimit : '—';
+        $('faqQuotaText').textContent = '免費參加，幼兒園大班組 ' + quotaK + ' 名，國小低年級組 ' + quotaE + ' 名，額滿後開放候補。';
       }
 
       var tl = $('timelineContainer'); tl.innerHTML = '';
@@ -965,6 +970,7 @@
       $('confirmDeadlineText').textContent = cfg.confirmDeadline;
 
       // 報名截止顯示（使用 cfg.registrationDeadline）
+      var deadlineClosed = false;
       if (cfg.registrationDeadline) {
         try {
           var dl = new Date(cfg.registrationDeadline);
@@ -977,6 +983,7 @@
                         String(dl.getHours()).padStart(2,'0') + ':' + String(dl.getMinutes()).padStart(2,'0');
             var txt = '';
             if (diffMs <= 0) {
+              deadlineClosed = true;
               txt = '⏰ 報名已截止';
               $('deadlineBanner').style.background = '#fef2f2';
               $('deadlineBanner').style.borderColor = '#fecaca';
@@ -993,6 +1000,14 @@
             $('deadlineBanner').style.display = 'inline-block';
           }
         } catch(e) { /* 忽略錯誤，保持隱藏 */ }
+      }
+
+      if (cfg.isActive === false) {
+        setRegistrationAvailability(false, '⛔ 本活動目前尚未開放報名');
+      } else if (deadlineClosed) {
+        setRegistrationAvailability(false, '⏰ 本活動報名已截止');
+      } else {
+        setRegistrationAvailability(true, '');
       }
       
       var limitK = cfg.groups['幼兒園大班組'] ? cfg.groups['幼兒園大班組'].displayLimit : '?';
@@ -1014,7 +1029,7 @@
       var coText = (cfg.coOrganizer || '').trim();
       var coSubText = (cfg.coOrganizerSub || '').trim();
 
-      $('footerCoOrganizer').textContent = coText;
+      renderUnitList($('footerCoOrganizer'), coText);
       $('footerCoOrganizerSub').textContent = coSubText;
 
       if ($('footerCoOrganizerRow')) {
@@ -1030,7 +1045,36 @@
       document.title = cfg.eventName;
     }
 
-    var STATUS_DISPLAY = { open: '🟢 熱烈報名中', almostFull: '🔥 即將額滿', waitlist: '⚠️ 已滿(候補中)' };
+    function renderUnitList(el, text) {
+      if (!el) return;
+      el.innerHTML = '';
+      String(text || '').split(/[、，,\n]+/).map(function(item) {
+        return item.trim();
+      }).filter(function(item) {
+        return item !== '';
+      }).forEach(function(item) {
+        var line = document.createElement('span');
+        line.textContent = item;
+        line.style.display = 'block';
+        el.appendChild(line);
+      });
+    }
+
+    function setRegistrationAvailability(enabled, message) {
+      registrationEnabled = enabled;
+      registrationClosedMessage = message || '';
+      var btn = $('submitBtn');
+      if (btn) {
+        btn.disabled = !enabled;
+        btn.innerHTML = enabled ? '確認送出報名表' : registrationClosedMessage;
+      }
+      if (!enabled) {
+        if ($('registerTitle')) $('registerTitle').textContent = registrationClosedMessage;
+        if ($('waitlistNotice')) $('waitlistNotice').style.display = 'none';
+      }
+    }
+
+    var STATUS_DISPLAY = { open: '🟢 熱烈報名中', almostFull: '🔥 即將額滿', waitlist: '⚠️ 已滿(候補中)', closed: '⛔ 尚未開放報名' };
 
     function loadGroupStatus() {
       fetch(GAS_URL + '?action=checkStatus&event=' + encodeURIComponent(EVENT_ID))
@@ -1052,7 +1096,10 @@
     function updateCountdown(numEl, subEl, info) {
       if (!numEl || !info) return;
       numEl.className = 'quota-countdown-number';
-      if (info.status === 'waitlist') {
+      if (info.status === 'closed') {
+        numEl.textContent = '—'; numEl.style.color = '#6b7280';
+        if (subEl) subEl.textContent = '尚未開放報名';
+      } else if (info.status === 'waitlist') {
         numEl.textContent = '0'; numEl.style.color = '#dc2626';
         if (subEl) subEl.textContent = '名額已滿';
       } else if (info.status === 'almostFull') {
@@ -1073,6 +1120,7 @@
       if (info.status === 'open') { el.classList.add('open'); el.style.background='#ecfdf5'; el.style.color='#059669'; }
       else if (info.status === 'almostFull') { el.style.background='#fffbeb'; el.style.color='#d97706'; }
       else if (info.status === 'waitlist') { el.style.background='#fef2f2'; el.style.color='#dc2626'; }
+      else if (info.status === 'closed') { el.style.background='#f3f4f6'; el.style.color='#6b7280'; }
     }
 
     function updateGroupOptions(data) {
@@ -1085,6 +1133,7 @@
           if (info.status === 'open') suffix = '（限 ' + info.displayLimit + ' 名）';
           else if (info.status === 'almostFull') suffix = '（即將額滿）';
           else if (info.status === 'waitlist') suffix = '（已額滿，接受候補）';
+          else if (info.status === 'closed') suffix = '（尚未開放報名）';
           opt.textContent = opt.value + suffix;
         }
       });
@@ -1092,6 +1141,12 @@
 
     function updateRegisterSection(data) {
       var title = $('registerTitle'); var notice = $('waitlistNotice'); var btn = $('submitBtn');
+      if (!registrationEnabled) {
+        if (title) title.textContent = registrationClosedMessage;
+        if (notice) notice.style.display = 'none';
+        if (btn) { btn.disabled = true; btn.innerHTML = registrationClosedMessage; }
+        return;
+      }
       var kWait = data['幼兒園大班組'] && data['幼兒園大班組'].status === 'waitlist';
       var eWait = data['國小低年級組'] && data['國小低年級組'].status === 'waitlist';
       if (kWait && eWait) {
@@ -1104,6 +1159,7 @@
       } else {
         if (title) title.textContent = '立即報名參加';
         if (notice) notice.style.display = 'none';
+        if (btn) btn.innerHTML = '確認送出報名表';
       }
     }
 
@@ -1111,6 +1167,10 @@
 
     function validateForm() {
       var errors =[];
+      if (!registrationEnabled) {
+        errors.push(registrationClosedMessage || '目前無法受理報名');
+        return errors;
+      }
       if (!$('fullJoin').value) errors.push('請選擇是否能全程參與');
       if ($('fullJoin').value === '否') {
         var contactName = cfg && cfg.contactName ? cfg.contactName : '主辦單位';
@@ -1166,7 +1226,9 @@
       // 先預設顯示，loadGroupStatus 完成後 updateRegisterSection 會再依狀態正確調整
       $('noticePink').style.display = 'block'; $('noticeGreen').style.display = 'block';
       $('registerForm').reset(); hideError();
-      var btn = $('submitBtn'); btn.disabled = false; btn.innerHTML = '確認送出報名表';
+      var btn = $('submitBtn');
+      btn.disabled = !registrationEnabled;
+      btn.innerHTML = registrationEnabled ? '確認送出報名表' : registrationClosedMessage;
       $('progress').classList.remove('show');
       document.getElementById('register').scrollIntoView({ behavior: 'smooth', block: 'start' });
       loadGroupStatus();
